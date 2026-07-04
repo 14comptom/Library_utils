@@ -1,4 +1,4 @@
-# Ignore your actual compiled binaries
+# Ignore actual compiled binaries
 utils
 my_program
 color

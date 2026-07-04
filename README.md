@@ -6,7 +6,7 @@ applications. It prevents buffer overflows and program crashes caused by unexpec
 ## Features
 * **Safe Integer Parsing:** Validates base-10 integer inputs, handling empty returns and invalid characters.
 * **Safe Float Parsing:** Validates float parsing engine with user retry configurations.
-* **Cross-Platform Sleep:** Clean, platform-independent sleep utilities for Linux, macOS, and Windows.
+* **Cross-Platform Sleep:** Has,  platform-independent sleep utilities for Linux, macOS, and Windows.
 
 ## How to Compile
 
