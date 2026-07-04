@@ -61,5 +61,5 @@ int main(void){
                         printf("----Float data type validation successful!---\n");
                     }
 
-
+    return 0;
 }

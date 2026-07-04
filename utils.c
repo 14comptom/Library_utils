@@ -1,10 +1,12 @@
 /*
 *FILE:       utils.c
 *AUTHOR:     Comptom
-*NOTES:      
-*WARNINGS   *If the user enters numberS -110, -111 for conversion, the function
-            *will fail to convert and return error.
+*NOTES:      *The program includes safe input validation for float and integer
+             *data types.
+             *it also includes a crossplatform sleep fuction if needed.
+*WARNINGS   *
             *Only converts base 10 numbers, no other base is supported.
+*LICENCE    *Licensed under MIT License.
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -103,6 +105,14 @@ static bool loop_input_prompt(const unsigned int max_attempts,
     return false; 
 }
 
+/*
+    *function call requires 5 parameters.
+    *compulsory parameters are in the order: buffer size,
+    *buffer and pointer to end value.
+    *optional message parameter is represented bu NULL and 
+    *if the program does not need a loop it is denoted by -1.
+*/
+
 bool utils_int(size_t buffer_size, char *buffer, const char *message,
                 int max_attempts, int *output_value){
     
@@ -156,6 +166,9 @@ static bool convert_string_to_float(const char* buffer, float *output_value) {
     return true;
 }
 
+/*
+*Function call is similar to utils_int() with parameters and arguments.
+*/
 bool utils_float(size_t buffer_size, char* buffer, const char* message, 
                  int max_attempts, float *output_value) {
 
