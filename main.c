@@ -60,6 +60,7 @@ int main(void){
                         utils_sleep(500);
                         printf("----Float data type validation successful!---\n");
                     }
+    utils_print_color(stdout, "Print custom Color working..", color_cyan);
 
     return 0;
 }

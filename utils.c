@@ -191,3 +191,67 @@ bool utils_float(size_t buffer_size, char* buffer, const char* message,
     return false;
 }
 
+
+/*
+    Pass the type of message to be printed
+    Only supported colors work. Listed above
+*/
+
+enum color_codes {
+    color_green,
+    color_red,
+    color_yellow,
+    color_cyan,
+    color_magenta,
+    color_blue,
+    color_black,
+    color_white
+};
+
+
+void utils_print_color(FILE *stream, const char *message,
+                         enum color_codes color)
+{
+    switch (color)
+    {
+        case color_white:
+            fprintf(stream, "\033[37m");
+            break;
+
+        case color_black:
+            fprintf(stream, "\033[30m");
+            break;
+
+        case color_red:
+            fprintf(stream, "\033[31m");
+            break;
+
+        case color_green:
+            fprintf(stream, "\033[32m");
+            break;
+
+        case color_yellow:
+            fprintf(stream, "\033[33m");
+            break;
+
+        case color_blue:
+            fprintf(stream, "\033[34m");
+            break;
+
+        case color_magenta:
+            fprintf(stream, "\033[35m");
+            break;
+
+        case color_cyan:
+            fprintf(stream, "\033[36m");
+            break;
+
+        default:
+            break;
+    }
+
+    fprintf(stream, "%s\n", message);
+
+    /* Reset terminal color */
+    fprintf(stream, "\033[0m");
+}
