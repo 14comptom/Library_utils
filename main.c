@@ -31,7 +31,7 @@ int main(void){
     /*
     Parameters are passed in the order of buffer size, buffer, message(optional
     represented by NULL), number if loops(optionsl denoted by -1) and pointer to
-    final value.    
+    final value.
     */
     if(utils_int(BUFFER_SIZE, buffer, "An integer is required\n", 3,
             &int_to_be_converted)){
@@ -51,10 +51,10 @@ int main(void){
 
      printf("Try to enter float type number: ");
      /*
-     Function call is similar to utils_int() with all the arguments and 
+     Function call is similar to utils_int() with all the arguments and
      parameters.
      */
-     if(utils_float(BUFFER_SIZE, buffer, "A float type is required\n", 3, 
+     if(utils_float(BUFFER_SIZE, buffer, "A float type is required\n", 3,
                     &float_to_be_converted)){
                         printf("%.2f\n", float_to_be_converted);
                         utils_sleep(500);
