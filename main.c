@@ -1,66 +1,38 @@
-/*
-*FILE:       *main.c
-*AUTHOR:     Comptom
-*NOTES:      *The program tests and demonstrates use of utils.h lib.
-             *it also includes a crossplatform sleep fuction if needed.
-*WARNINGS   *
-            *Only converts base 10 numbers, no other base is supported.
-*LICENCE    *Licensed under MIT License.
-*/
-
+// main.c
 #include <stdio.h>
+
 #include "utils.h"
 
 #define BUFFER_SIZE 256
 
-int main(void){
+int main(void) {
     char buffer[BUFFER_SIZE];
-    int int_to_be_converted;
-    float float_to_be_converted;
 
-    printf("Welcome to utils lib testing\n");
+    int test_number;
+    float test_float;
 
-    /*Sleep time is entered in miliseconds in whichever platform.*/
-    utils_sleep(500);
-    printf("----Integer data type testing----\n");
-    utils_sleep(500);
+    printf("Enter a float type: ");
+    string_to_float(BUFFER_SIZE, buffer, "Invalid number", 2, &test_float);
 
-    /*Initialize integer data type validation from utils.h*/
-    printf("Try to enter an int number: ");
+    printf("Enter an integer number: ");
+    string_to_int(BUFFER_SIZE, buffer, "Invalid number", 2, &test_number);
+    printf("\n\n");
+    printf("Float number: %f\n", test_float);
+    printf("Integer number: %d\n", test_number);
 
-    /*
-    Parameters are passed in the order of buffer size, buffer, message(optional
-    represented by NULL), number if loops(optionsl denoted by -1) and pointer to
-    final value.    
-    */
-    if(utils_int(BUFFER_SIZE, buffer, "An integer is required\n", 3,
-            &int_to_be_converted)){
-                printf("%d\n", int_to_be_converted);
-                utils_sleep(500);
-                printf("----Int data type validation successfull.----\n");
-    }
+    //depreciated test
+    printf("\n\n");
+    int depreciated_int;
+    float depreciated_float;
 
-    else{
-        printf("----Int data type validation failed!----\n");
-    }
+    printf("Enter a float number: ");
+    utils_float(BUFFER_SIZE, buffer, NULL, -1, &depreciated_float);
 
-     /*Initialize integer data type validation from utils.h*/
-     utils_sleep(500);
-     printf("----Float dtata type testing----\n");
-     utils_sleep(500);
+    printf("Enter a integer: ");
+    utils_int(BUFFER_SIZE, buffer, NULL, -1, &depreciated_int);
 
-     printf("Try to enter float type number: ");
-     /*
-     Function call is similar to utils_int() with all the arguments and 
-     parameters.
-     */
-     if(utils_float(BUFFER_SIZE, buffer, "A float type is required\n", 3, 
-                    &float_to_be_converted)){
-                        printf("%.2f\n", float_to_be_converted);
-                        utils_sleep(500);
-                        printf("----Float data type validation successful!---\n");
-                    }
-    utils_print_color(stdout, "Print custom Color working..", color_cyan);
+    printf("Depreciated Float number: %f\n", depreciated_float);
+    printf("Depreciated Integer number: %d\n", depreciated_int);
 
-    return 0;
+
 }

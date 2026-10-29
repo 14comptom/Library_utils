@@ -1,7 +1,5 @@
-# Ignore actual compiled binaries
-utils
-my_program
-color
 
-# Ignore temporary compiler objects
+utils
+
+
 *.o

@@ -1,23 +1,209 @@
-/*
-*FILE:       utils.c
-*AUTHOR:     Comptom
-*NOTES:      *The program includes safe input validation for float and integer
-             *data types.
-             *it also includes a crossplatform sleep fuction if needed.
-*WARNINGS   *
-            *Only converts base 10 numbers, no other base is supported.
-*LICENCE    *Licensed under MIT License.
-*/
+//
+#include "utils.h"
+
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
+#include <limits.h>
 
-#define VERSION_NUMBER "1.0.1"
+typedef bool(*Converter)(char* buffer, void* return_value, char * message);
 
-#define FAILED_CHAR_FUNCTION NULL
+static bool convert_to_float(char* buffer, void* return_value, char* message){
+    if (return_value == NULL) {
+            return false;
+        }
+    float *output_value = return_value;
+    char *endptr;
 
-#include <stdio.h>
+    *output_value = strtof(buffer, &endptr);
+
+    if(
+        endptr == buffer ||
+        (*endptr != '\0' && *endptr != '\n' && *endptr != '\r')
+    ) {
+        fprintf(stderr, "%s\n", message);
+        return false;
+    }
+
+    return true;
+}
+static bool convert_to_int(char* buffer, void* return_value, char* message){
+    int* output_vallue = return_value;
+    char* endptr;
+    long int_buffer = strtol(buffer, &endptr, 10);
+
+    if(
+        endptr == buffer ||
+        (*endptr != '\0' && *endptr != '\n' && *endptr != '\r')
+    ) {
+        fprintf(stderr, "%s\n", message);
+        return false;
+    }
+
+    if(int_buffer < INT_MIN || int_buffer > INT_MAX) {
+        fprintf(stderr, "%s\n", message);
+        return false;
+    } else {
+        if(output_vallue == NULL) {
+            return false;
+        }
+        *output_vallue = (int)int_buffer;
+    }
+
+
+    return true;
+}
+typedef enum {
+    FLOAT,
+    INT,
+    ENUM_LENGTH
+} ConvertionType;
+
+typedef enum {
+    FLOAT_TAG,
+    INT_TAG
+} Tag;
+
+typedef struct {
+    Converter converter;
+} TypeConvert;
+
+static const TypeConvert type_convert[ENUM_LENGTH] = {
+    [FLOAT] = {
+        .converter = convert_to_float
+    },
+
+    [INT] = {
+        .converter = convert_to_int
+    }
+};
+
+
+
+static bool validate_param(
+            size_t *buffer_size, const char* buffer, char* message
+    ){
+    if(
+        buffer_size == NULL ||
+        *buffer_size <= 0 ||
+        buffer == NULL
+    ) {
+        fprintf(stderr, "Invalid parameters\n"); // Check for function tag
+        return false;
+    }
+
+    return true;
+}
+
+static bool validate_input(
+    size_t buffer_size,
+    char* buffer,
+    char* message
+) {
+    if(fgets(buffer, buffer_size, stdin) == NULL) return false;
+    if (
+        buffer[0] == '\n' ||
+        buffer[0] == '\r'
+        ) {
+        fprintf(stderr, "%s", message);
+        return false;
+    }
+
+    return true;
+}
+
+static bool loop_prompt(
+    size_t buffer_size,
+    char* message,
+    int max_attempts,
+    char* buffer,
+    void* output_value,
+    Tag tag
+) {
+    bool success = false;
+    for(size_t i=0; i<max_attempts; i++) {
+        if(i > 0) {
+            message = "Invalid input. Try again: ";
+            printf("%s", message);
+        }
+        if(!validate_input(buffer_size, buffer, message)) {
+            continue;
+        }
+
+        if (tag == INT_TAG) {
+            success = type_convert[INT].converter(buffer, output_value, message);
+        } else {
+           success = type_convert[FLOAT].converter(buffer, output_value, message);
+        }
+
+        if(success) break;
+    }
+    return success;
+}
+
+static bool convertion_init(
+    size_t buffer_size,
+    char* buffer,
+    char* message,
+    int max_attempts,
+    void *output_value,
+    Tag tag
+) {
+    // If no message is given, default to:
+    if (message == NULL) {
+        message = "Invalid input\n"; // Remove \n if attempts > 1
+    }
+    // Take first prompt as first attempt.
+    if (max_attempts < 1) { // -1 max attempts means user only wants one trial.
+        max_attempts = 1;
+    }
+
+    if(
+        !validate_param(&buffer_size, buffer, message)
+    ) {
+        fprintf(stderr,"%s", message);
+        return false;
+    }
+
+    return loop_prompt(buffer_size, message, max_attempts, buffer, output_value, tag);
+}
+
+
+bool string_to_int(size_t buffer_size, char* buffer, char * message,
+    int max_attempts, int* output_value) {
+
+    Tag tag = INT_TAG;
+
+    return convertion_init(
+        buffer_size,
+        buffer,
+        message,
+        max_attempts,
+        output_value,
+        tag
+    );
+}
+
+bool string_to_float(size_t buffer_size, char* buffer, char * message,
+    int max_attempts, float* output_value) {
+
+
+
+    Tag tag = FLOAT_TAG;
+
+    return convertion_init(
+        buffer_size,
+        buffer,
+        message,
+        max_attempts,
+        output_value,
+        tag
+    );
+
+}
+
+/* Sleep fucntion */
 
 #ifdef _WIN32
     #include <windows.h>
@@ -29,7 +215,7 @@
 
  /*Ensure crossplatform compatibility*/
 void utils_sleep(const unsigned int miliseconds){
-    
+
     #ifdef _WIN32
         Sleep(miliseconds);
     #elif __linux__
@@ -38,175 +224,6 @@ void utils_sleep(const unsigned int miliseconds){
         usleep(miliseconds * 1000);
     #endif
 }
-
-typedef bool (*FloatConvertFunc)(const char*, float*);
-typedef bool (*ConvertFunc)(const char*, int*);
-
-static bool convert_string_to_int(const char *buffer, int *output_value) {
-    char *endptr;
-    if (buffer == NULL || buffer[0] == '\n') return false;
-
-    long val = strtol(buffer, &endptr, 10);
-
-    
-    if (endptr == buffer || *endptr != '\n') {
-        return false;
-    }
-
-    *output_value = (int)val;
-    return true;
-}
-
-static char* validate_input(const unsigned int buffer_size, char *buffer, 
-                    const char *message){
-
-    if(message == NULL){
-        message = "Invalid input.\n"; /*Default error message if non*/
-    }                                 /*is provided*/
-
-    if(fgets(buffer, buffer_size, stdin) == NULL)   {
-        fprintf(stderr, "Error [Invalid Input]: Failed to read input.\n");
-        return FAILED_CHAR_FUNCTION;
-    } 
-    return buffer;
-}
-
-static bool valid_parameters(size_t buffer_size, char *buffer){
-     /*confirm correct input early enough to prevent segmentation fault*/
-    if(buffer_size == 0 || buffer == NULL){
-        fprintf(stderr,"Error [Missing Parameters]: Buffer size and buffer" 
-                        "are required parameters.\n");
-        return false; 
-    }
-
-    else{
-        return true;
-    }
-}
-
-/*pass the 'converter' as a parameter to the loop function*/ 
-static bool loop_input_prompt(const unsigned int max_attempts, 
-                            const char *message,
-                              char *buffer, const unsigned int buffer_size, 
-                              int *out_value, ConvertFunc converter) { 
-    for (unsigned int i = 0; i < max_attempts; i++) {
-        printf("%s", message);
-        printf("Attempt %d of %d: ", i + 1, max_attempts);
-        fflush(stdout);
-
-        if (validate_input(buffer_size, buffer, message) == NULL) {
-            return false;
-        }
-
-        if (converter(buffer, out_value)) {
-            return true; 
-        }
-    }
-    return false; 
-}
-
-/*
-    *function call requires 5 parameters.
-    *compulsory parameters are in the order: buffer size,
-    *buffer and pointer to end value.
-    *optional message parameter is represented bu NULL and 
-    *if the program does not need a loop it is denoted by -1.
-*/
-
-bool utils_int(size_t buffer_size, char *buffer, const char *message,
-                int max_attempts, int *output_value){
-    
-    if(!valid_parameters(buffer_size, buffer)){
-        return false;
-    }
-
-    if(max_attempts == -1){
-        if (validate_input(buffer_size, buffer, message) == NULL) return false;
-        return convert_string_to_int(buffer, output_value);
-    }
-
-    else if (max_attempts > 0) {
-        if (validate_input(buffer_size, buffer, message) == NULL) return false;
-        if (convert_string_to_int(buffer, output_value)) return true;
-
-        return loop_input_prompt(max_attempts, message, buffer, buffer_size, 
-                         output_value, convert_string_to_int);
-    }
-    return false;
-}
-
-static bool float_loop_input_prompt(const unsigned int max_attempts, 
-                                    const char *message,
-                                    char *buffer, const unsigned int buffer_size, 
-                                    float *out_value, FloatConvertFunc converter) { 
-    for (unsigned int i = 0; i < max_attempts; i++) {
-        printf("%s", message);
-        printf("Attempt %d of %d: ", i + 1, max_attempts);
-        fflush(stdout);
-
-        if (validate_input(buffer_size, buffer, message) == NULL) return false;
-        if (converter(buffer, out_value)) return true; 
-    }
-    return false; 
-}
-
-static bool convert_string_to_float(const char* buffer, float *output_value) {
-    char* endptr;
-
-    if (buffer == NULL || buffer[0] == '\n') return false;
-
-    float float_value = strtof(buffer, &endptr);
-
-    /*Ensure the conversion was successful and consumed the whole input*/
-    if (endptr == buffer || *endptr != '\n') {
-        return false;
-    }
-
-    *output_value = float_value;
-    return true;
-}
-
-/*
-*Function call is similar to utils_int() with parameters and arguments.
-*/
-bool utils_float(size_t buffer_size, char* buffer, const char* message, 
-                 int max_attempts, float *output_value) {
-
-    if(!valid_parameters(buffer_size, buffer)){
-        return false;
-    }
-
-    if(max_attempts == -1){
-        if (validate_input(buffer_size, buffer, message) == NULL) return false;
-        return convert_string_to_float(buffer, output_value);
-    }
-
-    else if (max_attempts > 0) {
-        if (validate_input(buffer_size, buffer, message) == NULL) return false;
-        if (convert_string_to_float(buffer, output_value)) return true;
-
-        return float_loop_input_prompt(max_attempts, message, buffer, buffer_size, 
-                                       output_value, convert_string_to_float);
-    }
-    return false;
-}
-
-
-/*
-    Pass the type of message to be printed
-    Only supported colors work. Listed above
-*/
-
-enum color_codes {
-    color_green,
-    color_red,
-    color_yellow,
-    color_cyan,
-    color_magenta,
-    color_blue,
-    color_black,
-    color_white
-};
 
 
 void utils_print_color(FILE *stream, const char *message,
