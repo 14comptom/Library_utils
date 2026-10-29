@@ -1,7 +1,7 @@
 /*
 *FILE:       utils.h
 *AUTHOR:     Comptom
-*NOTES:      Designed to enable safe integer and float validation with 
+*NOTES:      Designed to enable safe integer and float validation with
             *less code.
 *WARNINGS   *
 *LICENCE    *Licensed under MIT License.
@@ -14,9 +14,9 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#define VERSION_NUMBER "1.0.1"
+#define UTILS_VERSION_NUMBER "1.1.1"
 
-enum color_codes {
+/* enum color_codes {
     color_green,
     color_red,
     color_yellow,
@@ -29,14 +29,40 @@ enum color_codes {
 
 void utils_print_color(FILE *stream,
                          const char *message,
-                         enum color_codes color);
+                         enum color_codes color); */
 
-bool utils_int(size_t buffer_size, char *buffer, const char *message,
-               int max_attempts, int *output_value);
+bool string_to_int(size_t buffer_size, char* buffer, char * message,
+    int max_attempts, int* output_value);
 
-bool utils_float(size_t buffer_size, char *buffer, const char *message,
-                 int max_attempts, float *output_value);
+bool string_to_float(size_t buffer_size, char* buffer, char * message,
+    int max_attempts, float* output_value);
 
-void utils_sleep(const unsigned int miliseconds);
+bool utils_int(size_t buffer_size, char *buffer, char *message,
+                 int max_attempts, int *output_value)
+{
+    return string_to_int(
+        buffer_size,
+        buffer,
+        message,
+        max_attempts,
+        output_value
+    );
+}
+
+bool utils_float(size_t buffer_size, char *buffer, char *message,
+                 int max_attempts, float *output_value)
+{
+    return string_to_float(
+        buffer_size,
+        buffer,
+        message,
+        max_attempts,
+        output_value
+    );
+}
+
+/* void utils_sleep(const unsigned int miliseconds); */
+
+
 
 #endif
