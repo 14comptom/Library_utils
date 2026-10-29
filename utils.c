@@ -1,13 +1,18 @@
 //
+#include "utils.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 
-typedef bool(*Converter)(char* buffer, void* return_value);
+typedef bool(*Converter)(char* buffer, void* return_value, char * message);
 
-static bool convert_to_float(char* buffer, void* return_value){
+static bool convert_to_float(char* buffer, void* return_value, char* message){
+    if (return_value == NULL) {
+            return false;
+        }
     float *output_value = return_value;
     char *endptr;
 
@@ -17,13 +22,13 @@ static bool convert_to_float(char* buffer, void* return_value){
         endptr == buffer ||
         (*endptr != '\0' && *endptr != '\n' && *endptr != '\r')
     ) {
-        fprintf(stderr, "Type casting failed\n");
+        fprintf(stderr, "%s\n", message);
         return false;
     }
 
     return true;
 }
-static bool convert_to_int(char* buffer, void* return_value){
+static bool convert_to_int(char* buffer, void* return_value, char* message){
     int* output_vallue = return_value;
     char* endptr;
     long int_buffer = strtol(buffer, &endptr, 10);
@@ -32,18 +37,18 @@ static bool convert_to_int(char* buffer, void* return_value){
         endptr == buffer ||
         (*endptr != '\0' && *endptr != '\n' && *endptr != '\r')
     ) {
-        fprintf(stderr, "Type casting failed\n");
+        fprintf(stderr, "%s\n", message);
         return false;
     }
 
-    if(sizeof(int_buffer) > sizeof(int)) {
-        fprintf(stderr, "Typecasting failed: Buffer overflow\n");
+    if(int_buffer < INT_MIN || int_buffer > INT_MAX) {
+        fprintf(stderr, "%s\n", message);
         return false;
     } else {
-        *output_vallue = (int)int_buffer;
         if(output_vallue == NULL) {
             return false;
         }
+        *output_vallue = (int)int_buffer;
     }
 
 
@@ -127,9 +132,9 @@ static bool loop_prompt(
         }
 
         if (tag == INT_TAG) {
-            success = type_convert[INT].converter(buffer, output_value);
+            success = type_convert[INT].converter(buffer, output_value, message);
         } else {
-           success = type_convert[FLOAT].converter(buffer, output_value);
+           success = type_convert[FLOAT].converter(buffer, output_value, message);
         }
 
         if(success) break;
@@ -157,7 +162,7 @@ static bool convertion_init(
     if(
         !validate_param(&buffer_size, buffer, message)
     ) {
-        fprintf(stderr,"Failed");
+        fprintf(stderr,"%s", message);
         return false;
     }
 
@@ -196,5 +201,74 @@ bool string_to_float(size_t buffer_size, char* buffer, char * message,
         tag
     );
 
+}
 
+/* Sleep fucntion */
+
+#ifdef _WIN32
+    #include <windows.h>
+#elif __linux__
+    #include <unistd.h>
+#elif __APPLE__
+    #include <unistd.h>
+#endif
+
+ /*Ensure crossplatform compatibility*/
+void utils_sleep(const unsigned int miliseconds){
+
+    #ifdef _WIN32
+        Sleep(miliseconds);
+    #elif __linux__
+        usleep(miliseconds * 1000);
+    #elif __APPLE__
+        usleep(miliseconds * 1000);
+    #endif
+}
+
+
+void utils_print_color(FILE *stream, const char *message,
+                         enum color_codes color)
+{
+    switch (color)
+    {
+        case color_white:
+            fprintf(stream, "\033[37m");
+            break;
+
+        case color_black:
+            fprintf(stream, "\033[30m");
+            break;
+
+        case color_red:
+            fprintf(stream, "\033[31m");
+            break;
+
+        case color_green:
+            fprintf(stream, "\033[32m");
+            break;
+
+        case color_yellow:
+            fprintf(stream, "\033[33m");
+            break;
+
+        case color_blue:
+            fprintf(stream, "\033[34m");
+            break;
+
+        case color_magenta:
+            fprintf(stream, "\033[35m");
+            break;
+
+        case color_cyan:
+            fprintf(stream, "\033[36m");
+            break;
+
+        default:
+            break;
+    }
+
+    fprintf(stream, "%s\n", message);
+
+    /* Reset terminal color */
+    fprintf(stream, "\033[0m");
 }
