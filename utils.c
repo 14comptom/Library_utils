@@ -203,6 +203,32 @@ bool string_to_float(size_t buffer_size, char* buffer, char * message,
 
 }
 
+/*prevent multiple redefinition by linker*/
+bool utils_int(size_t buffer_size, char *buffer, char *message,
+                 int max_attempts, int *output_value)
+{
+    return string_to_int(
+        buffer_size,
+        buffer,
+        message,
+        max_attempts,
+        output_value
+    );
+}
+
+bool utils_float(size_t buffer_size, char *buffer, char *message,
+                 int max_attempts, float *output_value)
+{
+    return string_to_float(
+        buffer_size,
+        buffer,
+        message,
+        max_attempts,
+        output_value
+    );
+}
+
+
 /* Sleep fucntion */
 
 #ifdef _WIN32
